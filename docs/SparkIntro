@@ -1,0 +1,74 @@
+Apache Spark:
+=============
+--> A fast and general execution engine for processing large scale real time data
+-->its scalable ---write one driver program and spark will figure out how to process it across cluster.
+-->its fast -- runs programs 100x faster than Map Reduce as it runs in memory and if it has to run reading data from disk it is 10x faster.It is because of DAG engine.
+
+Architechture:
+===============
+Driver program tells Spark what you want to do, and Spark figures out how to best distribute that work.
+
+Although Spark is in most cases a better alternative to Hadoop's MapReduce component, Spark can run on top of a Hadoop cluster, taking advantage of its distributed file system and YARN cluster manager. Spark also has its own built-in cluster manager allowing you to use it outside of Hadoop, but it is not a complete replacement for Hadoop. Spark and Hadoop can co-exist.
+
+Spark is written in scala .Can be used with java or python or scala and runs on top of JVM
+
+Spark vs Hadoop ---refer to img MR VS Hadoop png.
+
+
+Spark RDDS:
+===========
+Any data you want to prcess in spark we create something called as RDDS.RDDS represent data in memory.
+
+Reselient -fault tolerant
+Distributed -divide those rows on multiple computers
+Datasets -rows of info
+
+The spark context is responsible for making the RDDS.This sc is created by yhe driver program.
+An RDD is created only when a action is called.
+Once you have an RDD we can do the following operations like:
+1.map
+2.flatmap
+3.filter
+4.distinct
+5.sample
+6.union/intersectionetc..
+7.reduce
+8.collect 
+
+
+
+SPARK SQL:
+==========
+Dataframes extend RDDS.Its like a relational db,contains row cols,contains a schema so we can run sql queries ,read and write in JSON ,Hive or parquet format.Also can communicate with JDBC/ODBC interface.
+A DF is a Dataset of Row Object
+RDD's can be converted to DataSets with .toDS()
+Can perform SQL operations on Datasets.
+Need to use a Sparksession rather than spark context for spark sql/datasets.
+
+
+Spark-submit
+============
+Use the spark submit to run our spark programs outside of IDE
+command:
+spark-submit --class <main_class> --jars<deependecies> --files<file args>
+
+//On standalone
+spark-shell/spark-submit --master local[10]
+//On Yarn
+spark-submit --master (yarn/host-port/mesos/ect) --num-executors (default 2) --executor-memory --tota-executor-cores
+
+Sparksession vs sparkcontext vs sqlcontext:
+===========================================
+
+The Driver is a process that executes the main program of your Spark application and creates the SparkContext that coordinates the execution of jobs (more on this later). The executors are processes running on the worker nodes of the cluster which are responsible for executing the tasks the driver process has assigned to them.
+
+The cluster manager (such as Mesos or YARN) is responsible for the allocation of physical resources to Spark Applications.
+
+Every Spark Application needs an entry point that allows it to communicate with data sources and perform certain operations such as reading and writing data. In Spark 1.x, three entry points were introduced: SparkContext, SQLContext and HiveContext. Since Spark 2.x, a new entry point called SparkSession has been introduced that essentially combined all functionalities available in the three aforementioned contexts. Note that all contexts are still available even in newest Spark releases, mostly for backward compatibility purposes.
+
+
+Spark-context--used by driver program to establish a communication with the cluster and the resource managers in order to coordinate and execute jobs.
+
+SQLContext ---is the entry point to SparkSQL which is a Spark module for structured data processing. Once SQLContext is initialised, the user can then use it in order to perform various “sql-like” operations over Datasets and Dataframes.
+
+Spark 2.0 introduced a new entry point called SparkSession that essentially replaced both SQLContext and HiveContext.
