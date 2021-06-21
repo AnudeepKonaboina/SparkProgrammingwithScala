@@ -75,7 +75,7 @@ In spark if the file is read from hadoop and processed ,the numner of partitions
 within that machine.
 
 
- Datasets vs Dataframes:
+Datasets vs Dataframes:
 =======================
 RDDs Apis in 0.x were very fundamental ad were not developer friendly.
 This resulted in Dataframe in spark 1.3
@@ -88,10 +88,12 @@ Datasets were introduced in 1.6--combination of df and rdds without loosing opti
 Now Dataframe is an alias for Dataset[Row].Spark implicit conversion converts df to ds and vice versa.
 Using data set provides compile time saftey with optimizations also having lambda based transofrmations.
 
+Dataframe is a bunch of partitions read from a distributed storage and sored in a logical in-memory data-structure.
+
 Dataframe Operations:
 =====================
 Dataframe is nothing but a Dataset[Row] that means each row in a dataframe is an object of type ROW.
-Dataframe cols are objects of type Column
+Dataframe cols are objects of type Column,
 
 1. select
 ```
@@ -132,3 +134,48 @@ df.selectExpr(
       "count(quantity) as total_qty",
     ).show()
 ```
+
+Joins in spark :
+There are two types of joins supported by spark.
+
+1. Shuffle Join 
+Most commonly used join type in spark.The transfer of data from map exchange to reduce exchange is called as Shuffle opertion and is the main reason why spark joins are slow.
+Tuning performance of joins is all about optimizing shuffle operations.`spark.sql.shuffle.partitions` configures the number of partitions that are used when shuffling data for joins or aggregations. Default value is 200 i.e..,once you perform an aggregation or join on a dataframe the result of a shuffle operation will result in default 200 partitions.
+
+Difference between adding a repartition and shuffle partition while performing a job vs not adding them.Below is an optimized job:
+```scala
+import com.github.edge.roman.spear.SpearConnector
+import org.apache.log4j.{Level, Logger}
+import org.apache.spark.sql.SaveMode
+
+Logger.getLogger("com.github").setLevel(Level.INFO)
+val targetProps = Map(
+    "driver" -> "org.postgresql.Driver",
+    "user" -> "postgres_user",
+    "password" -> "mysecretpassword",
+    "url" -> "jdbc:postgresql://postgres:5432/pgdb"
+  )
+
+spark.conf.set("spark.sql.shuffle.partitions", 4)
+
+val csvJdbcConnector = SpearConnector
+    .createConnector(name="CSVtoPostgresConnector")
+    .source(sourceType = "file", sourceFormat = "csv")
+    .target(targetType = "relational", targetFormat = "jdbc")
+    .getConnector   
+ 
+csvJdbcConnector
+  .source(sourceObject="file:///opt/spear-framework/data/us-election-2012-results-by-county.csv", Map("header" -> "true", "inferSchema" -> "true"))
+  .saveAs("__tmp__")
+  .repartition(4)
+  .transformSql(
+    """select state_code,party,
+      |sum(votes) as total_votes
+      |from __tmp__
+      |group by state_code,party""".stripMargin)
+  .targetJDBC(objectName="mytable", props=targetProps, saveMode=SaveMode.Overwrite)
+```
+![image](https://user-images.githubusercontent.com/59328701/122783479-3be72780-d2cf-11eb-8c67-a856008a55ff.png)
+
+
+2. Broadcast Join 
