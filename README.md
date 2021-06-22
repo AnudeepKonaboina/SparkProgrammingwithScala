@@ -35,7 +35,17 @@ Sark Architecture:
 There are 2 components 1.Driver(Master) 2.Executor(Slaves)
 
 Local -- JVM--contains both Driver and Executor(container)
+
+![image](https://user-images.githubusercontent.com/59328701/122972837-33195300-d3ae-11eb-835e-8429cdce469c.png)
+
+
 cluster --- executors are launched across data nodes and processed.
+There are two deploy modes in cluster:
+1. client mode -driver euns on client machine and executors run on the cluster.
+2. cluster mode -driver and executor both run on cluster 
+
+![image](https://user-images.githubusercontent.com/59328701/122972685-08c79580-d3ae-11eb-8f45-ba83104909a1.png)
+
 
 Spark offers you 3 datastructures to load data from any source
 1.dataframe
